@@ -1,0 +1,25 @@
+{
+  "name": "danchoicloud",
+  "version": "1.0.0",
+  "description": "bot danh cho dan choi cloud",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hoangndst/danchoicloud.git"
+  },
+  "author": "hoangndst",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hoangndst/danchoicloud/issues"
+  },
+  "homepage": "https://github.com/hoangndst/danchoicloud#readme",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "node-telegram-bot-api": "^0.64.0"
+  }
+}
