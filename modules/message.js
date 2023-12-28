@@ -20,5 +20,5 @@ export const HIGH_1 = {
 
 export const HIGH_2 = {
     time: "3:30:00 PM",
-    message: "Đến giờ đi ngắm trời ngắm mây rồi các người anh em 😶‍🌫️. Tầng 12 nhé!"
+    message: "Happy time rồi các con vợ, xuống tầng 12 cùng high nào 😶‍🌫️"
 }
