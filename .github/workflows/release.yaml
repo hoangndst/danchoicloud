@@ -11,7 +11,7 @@ jobs:
         config:
           - { platform: linux, arch: amd64 }
           - { platform: linux, arch: arm64 }
-    runs-on: arc-runner-set
+    runs-on: ubuntu-latest
     steps:
       - name: '[preparation] checkout the current branch'
         uses: actions/checkout@v3.5.3
