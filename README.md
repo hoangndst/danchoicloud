@@ -1,0 +1,1 @@
+[![release](https://github.com/hoangndst/danchoicloud/actions/workflows/release.yaml/badge.svg)](https://github.com/hoangndst/danchoicloud/actions/workflows/release.yaml)
