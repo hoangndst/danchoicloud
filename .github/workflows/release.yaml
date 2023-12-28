@@ -39,5 +39,3 @@ jobs:
         env:
           DOCKER_HUB_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/danchoicloud
           CONTAINER_IMAGE_TAG: ${{ steps.get_version.outputs.VERSION }}
-
-          docker buildx build --output=type=registry --platform linux/arm64 -t "hoangndst/danchoicloud:v0.1.0" -f ./Dockerfile .
