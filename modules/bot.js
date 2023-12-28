@@ -5,7 +5,7 @@ dotenv.config();
 
 const TOKEN = process.env.TELEGRAM_TOKEN;
 const bot = new TelegramBot(TOKEN, { polling: true });
-
+console.log("Current  date time: " + new Date().toLocaleString());
 console.log("Bot server started, token: " + bot.token);
 
 export const sendMessage = async (options) => {
