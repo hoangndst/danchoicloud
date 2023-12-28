@@ -23,6 +23,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
         with:
           endpoint: builders
+          #  like command: docker buildx create --use --name builders
       - name: '[preparation] docker login'
         uses: docker/login-action@v3
         with:
@@ -38,3 +39,5 @@ jobs:
         env:
           DOCKER_HUB_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/danchoicloud
           CONTAINER_IMAGE_TAG: ${{ steps.get_version.outputs.VERSION }}
+
+          docker buildx build --output=type=registry --platform linux/arm64 -t "hoangndst/danchoicloud:v0.1.0" -f ./Dockerfile .
