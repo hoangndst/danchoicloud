@@ -26,6 +26,15 @@ export const sendMessageWithQuiz = async (optionsQuiz) => {
   }
 }
 
+export const sendMarkdownMessage = async (options) => {
+  try {
+    const message = await bot.sendMessage(options.chat_id, options.text, { ...options.options, parse_mode: "Markdown" })
+    console.log("Message sent successfully", message);
+  } catch (error) {
+    console.log("Error sending message: ", error)
+  }
+}
+
 export const sendMessageWithSchedule = async (options, asyncFunction) => {
   try {
     const j = schedule.scheduleJob(`${options.minute} ${options.hour} * * *`, async () => {
