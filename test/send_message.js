@@ -1,20 +1,30 @@
-// import {
-//   sendMessageWithSchedule,
-//   sendMarkdownMessage,
-//   sendMessage,
-//   onCommand 
-// } from "../modules/bot.js";
+import {
+  sendMessageWithSchedule,
+  sendMarkdownMessage,
+  sendMessage,
+  sendMessageWithMedia,
+  onCommand 
+} from "../modules/bot.js";
 import { a1y } from "../modules/channel.js";
-import { getCompetitionStandings, getCompetitionMatches, getWeatherForecast } from "../modules/api.js";
-import { table } from "table";
-import { DAY } from "../modules/message.js";
+// import { getCompetitionStandings, getCompetitionMatches, getWeatherForecast } from "../modules/api.js";
+// import { table } from "table";
+import { DAY, getEPLStandings, getWeatherForecastMessage, getCommands, getEPLMatches } from "../modules/message.js";
 
 const options = {
   hour: 23,
   minute: 45,
   chat_id: a1y.chat_id,
-  text: "danchoicloud release v0.1.1\nimage: hoangndst/danchoicloud:v0.1.1\ngithub: https://github.com/hoangndst/danchoicloud",
+  video: "https://i0.wp.com/www.printmag.com/wp-content/uploads/2021/02/4cbe8d_f1ed2800a49649848102c68fc5a66e53mv2.gif",
+  options: {
+    disable_notification: true,
+  },
 };
+
+// sendMessageWithMedia(options).then((res) => {
+//   console.log("Message sent successfully");
+// }).catch((error) => {
+//   console.log("Error sending message: ", error);
+// })
 
 // sendMessageWithSchedule(options, sendMessage).then(() => {
 //   console.log("Schedule successfully");
@@ -103,7 +113,7 @@ const options = {
 // })
 
 
-// onCommand(/\/epl @danchoicloud/, sendMessage, getEPLStandings, (msg) => {
+// onCommand(/\/ok/, sendMessage, getEPLMatches, "HTML", (msg) => {
 //   console.log("Command received: ", msg.text);
 // }).catch((error) => {
 //   console.log(error);

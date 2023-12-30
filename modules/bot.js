@@ -21,6 +21,53 @@ export const sendMessage = async (options) => {
   }
 };
 
+export const sendMessageWithMedia = async (options) => {
+  try {
+    if (options.photo) {
+      const message = await bot.sendPhoto(options.chat_id, options.photo, {
+        ...options.options,
+      });
+      console.log("Message sent successfully", message);
+    } else if (options.video) {
+      const message = await bot.sendVideo(options.chat_id, options.video, {
+        ...options.options,
+      });
+      console.log("Message sent successfully", message);
+    } else if (options.audio) {
+      const message = await bot.sendAudio(options.chat_id, options.audio, {
+        ...options.options,
+      });
+      console.log("Message sent successfully", message);
+    } else if (options.document) {
+      const message = await bot.sendDocument(
+        options.chat_id,
+        options.document,
+        {
+          ...options.options,
+        }
+      );
+      console.log("Message sent successfully", message);
+    } else if (options.animation) {
+      const message = await bot.sendAnimation(
+        options.chat_id,
+        options.animation,
+        {
+          ...options.options,
+        }
+      );
+      console.log("Message sent successfully", message);
+    } else if (options.voice) {
+      const message = await bot.sendVoice(options.chat_id, options.voice, {
+        ...options.options,
+      });
+      console.log("Message sent successfully", message);
+    } 
+
+  } catch (error) {
+    console.log("Error sending message: ", error);
+  }
+}
+
 export const sendMessageWithQuiz = async (optionsQuiz) => {
   try {
     const message = await bot.sendPoll(
@@ -79,17 +126,20 @@ export const sendMessageWeekdayWithSchedule = async (
   }
 };
 
-export const onCommand = async (command, asyncFunction, asyncGetMessageFunction, parse_mode) => {
+export const onCommand = async (command, asyncFunction, asyncGetMessageFunction, subOptions) => {
   bot.onText(command, (response) => {
     let options = {
       chat_id: response.chat.id,
       options: {
-        parse_mode: parse_mode || null,
+        ...subOptions,
         message_thread_id: response.message_thread_id || null,  
       },
     };
-    asyncGetMessageFunction().then((message) => {
-      options.text = message;
+    asyncGetMessageFunction().then((additionalOption) => {
+      options = {
+        ...options,
+        ...additionalOption,
+      };
       asyncFunction(options).then(() => {
         console.log("Message sent successfully");
       }).catch((error) => {
