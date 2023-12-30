@@ -1,6 +1,6 @@
 import { a1y } from "../modules/channel.js";
-import { sendMessage, sendMessageWithQuiz, sendMessageWeekdayWithSchedule } from "../modules/bot.js";
-import { ALARM, LUNCH, HIGH_1, HIGH_2 } from "../modules/message.js";
+import { sendMessage, sendMessageWithSchedule, sendMessageWeekdayWithSchedule } from "../modules/bot.js";
+import { ALARM, LUNCH, HIGH_1, HIGH_2, LEAVE, getWeatherForecastMessage } from "../modules/message.js";
 
 // general
 const optionsAlarms = {
@@ -10,11 +10,25 @@ const optionsAlarms = {
   text: ALARM.message,
 }
 
+const optionsNewDay = {
+  hour: 7,
+  minute: 30,
+  chat_id: a1y.chat_id,
+  text: "Chúc mừng một ngày mới các con vợ, hãy cố gắng làm việc chăm chỉ nhé! 🙂",
+}
+
 const optionsLunch = {
   hour: 8,
   minute: 0,
   chat_id: a1y.chat_id,
   text: LUNCH.message,
+}
+
+const optionsLeave = {
+  hour: 17,
+  minute: 30,
+  chat_id: a1y.chat_id,
+  text: LEAVE.message,
 }
 
 // a1y co so tang 12
@@ -38,6 +52,14 @@ const optionsHigh2 = {
   },
 }
 
+export const scheduleDay = async () => {
+  await sendMessageWithSchedule(optionsNewDay, sendMessage, getWeatherForecastMessage).then(() => {
+    console.log("New day scheduled");
+  }).catch((error) => {
+    console.log("Error scheduling new day: ", error);
+  })
+}
+
 export const scheduleWeekday = async () => {
   await sendMessageWeekdayWithSchedule(optionsAlarms, sendMessage).then(() => {
     console.log("Alarm scheduled");
@@ -48,6 +70,11 @@ export const scheduleWeekday = async () => {
     console.log("Lunch scheduled");
   }).catch((error) => {
     console.log("Error scheduling lunch: ", error);
+  });
+  await sendMessageWeekdayWithSchedule(optionsLeave, sendMessage).then(() => {
+    console.log("Leave scheduled");
+  }).catch((error) => {
+    console.log("Error scheduling leave: ", error);
   });
   await sendMessageWeekdayWithSchedule(optionsHigh1, sendMessage).then(() => {
     console.log("High 1 scheduled");
