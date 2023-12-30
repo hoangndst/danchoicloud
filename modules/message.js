@@ -57,16 +57,68 @@ export const COMMANDS = [
     command: "/weather",
     description: "Today weather",
   },
+  {
+    command: "/cat",
+    description: "Random cat image",
+  },
+  {
+    command: "/dog",
+    description: "Random dog image",
+  },
+  {
+    command: "/hoctap",
+    description: "Useful image for learning",
+  },
+  // for update useful image for learning, not for user
+  // {
+  //   command: "/updatehoctap",
+  //   description: "Update useful image for learning",
+  // },
 ];
+
+const supportCompetitions = [
+  {
+    id: 2013,
+    name: "Serie A",
+  },
+  {
+    id: 2014,
+    name: "La Liga",
+  },
+  {
+    id: 2021,
+    name: "EPL",
+  },
+  {
+    id: 2002,
+    name: "Bundesliga",
+  },
+  {
+    id: 2015,
+    name: "Ligue 1",
+  },
+];
+
 
 export const getCommands = async () => {
   let message = "@danchoicloud_bot commands:\n";
   for (let i = 0; i < COMMANDS.length; i++) {
     message += `${COMMANDS[i].command} - ${COMMANDS[i].description}\n`;
   }
+  // tutorial to update useful image for learning
+  message += "\n<b>Update useful image for learning:</b>\n";
+  message += "1. <tg-spoiler>Go to <a href='https://drive.google.com/drive/folders/1ThawSLpp6VdQu7IuQX29Q4yFTHhU0yrn?usp=sharing'>Drive</a></tg-spoiler>\n";
+  message += "2. Upload image to this folder 🗂\n";
+  message += "3. Use command '/updatehoctap' to update image, wait for a few seconds... 😎\n";
+  message += "4. Enjoy! 🥂\n";
+  
+  message += "\n<b>Please don't delete image on Drive 🥲, thank you!</b>\n";
+
   // for call contributors
   message += "\nContribute more feature 👨‍💻: https://github.com/hoangndst/danchoicloud"
-  return message;
+  // report issues
+  message += "\nReport issues 🥲: contact <tg-spoiler>@hoangndst</tg-spoiler> or open issues at: <a href='https://github.com/hoangndst/danchoicloud/issues'>issues</a>"
+  return { text: message };
 };
 
 export const getEPLStandings = async () => {
@@ -126,7 +178,7 @@ export const getEPLStandings = async () => {
   };
 
   output = table(messageTable, config);
-  return `<pre>${output}</pre>`;
+  return { text: `<pre>${output}</pre>` };
 };
 
 export const getEPLMatches = async () => {
@@ -183,7 +235,7 @@ export const getEPLMatches = async () => {
     },
   };
   output = table(messageTable, config);
-  return `<pre>${output}</pre>`;
+  return { text: `<pre>${output}</pre>` };
 };
 
 export const getWeatherForecastMessage = async () => {
@@ -202,5 +254,5 @@ export const getWeatherForecastMessage = async () => {
   newDayMessage += `Tầm nhìn: ${data.current.vis_km} km\n`;
   newDayMessage += `Chỉ số UV: ${data.current.uv}\n`;
   newDayMessage += `👉 Chi tiết: https:${data.current.condition.icon}\n`;
-  return newDayMessage;
+  return { text: newDayMessage };
 };

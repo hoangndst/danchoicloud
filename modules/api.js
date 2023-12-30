@@ -34,10 +34,6 @@ export const getCompetitionStandings = async (competitionId) => {
   }
 }
 
-// getEPLStandings().then(data => {
-//   console.log(data.standings[0].table);
-// })
-
 export const getCompetitionMatches = async (competitionId, dateFrom, dateTo) => {
   const options = {
     method: 'GET',
@@ -73,6 +69,75 @@ export const getCompetitionMatches = async (competitionId, dateFrom, dateTo) => 
   }
 }
 
-// getCompetitionTodayMatches("PL", '2023-12-29', '2023-12-31').then(data => {
-//   console.log(data.matches);
-// })
+export const getCatImage = async () => {
+  const options = {
+    method: 'GET',
+    url: 'https://api.thecatapi.com/v1/images/search',
+    headers: {
+      'x-api-key': 'DEMO-API-KEY'
+    }
+  };
+  try {
+    const response = await axios.request(options);
+    if (response.data[0].url.slice(response.data[0].url.length - 3, response.data[0].url.length) === 'gif' || 
+        response.data[0].url.slice(response.data[0].url.length - 3, response.data[0].url.length) === 'mp4' ||
+        response.data[0].url.slice(response.data[0].url.length - 3, response.data[0].url.length) === 'webm' ||
+        response.data[0].url.slice(response.data[0].url.length - 3, response.data[0].url.length) === 'ogg') {
+      return { video: response.data[0].url };
+    }
+    return { photo: response.data[0].url };
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export const getDogImage = async () => {
+  const options = {
+    method: 'GET',
+    url: 'https://dog.ceo/api/breeds/image/random'
+  };
+  try {
+    const response = await axios.request(options);
+    // check if the image is a gif or mp4 set { video: response.data.message } else set { photo: response.data.message }
+    if (response.data.message.slice(response.data.message.length - 3, response.data.message.length) === 'gif' || 
+        response.data.message.slice(response.data.message.length - 3, response.data.message.length) === 'mp4' ||
+        response.data.message.slice(response.data.message.length - 3, response.data.message.length) === 'webm' ||
+        response.data.message.slice(response.data.message.length - 3, response.data.message.length) === 'ogg') {
+      return { video: response.data.message };
+    }
+    return { photo: response.data.message };
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export const getGaiImage = async () => {
+  const options = {
+    method: 'GET',
+    url: 'https://script.google.com/macros/s/AKfycbyGg3Wk3hWnLTGw_PLkNTFqAhpdln-pg9tkJlBGLn8MafiElQsi89QwtEQP2GfFMBxQ/exec'
+  };
+  try {
+    const response = await axios.request(options);
+    return { photo: response.data.image };
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export const updateGaiImage = async () => {
+  const options = {
+    method: 'GET',
+    url: 'https://script.google.com/macros/s/AKfycbyGg3Wk3hWnLTGw_PLkNTFqAhpdln-pg9tkJlBGLn8MafiElQsi89QwtEQP2GfFMBxQ/exec?action=loadImage'
+  };
+  try {
+    const response = await axios.request(options);
+    if (response.data.updated) {
+      return { text: 'Cập nhật tài liệu học tập thành công 🥰' };
+    } 
+    return { text: 'Cập nhật tài liệu không thành công 🥲, liên hệ @hoangndst hoặc mở issues tại: https://github.com/hoangndst/danchoicloud/issues' };
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+
