@@ -64,6 +64,8 @@ export const getCommands = async () => {
   for (let i = 0; i < COMMANDS.length; i++) {
     message += `${COMMANDS[i].command} - ${COMMANDS[i].description}\n`;
   }
+  // for call contributors
+  message += "\nContribute more feature 👨‍💻: https://github.com/hoangndst/danchoicloud"
   return message;
 };
 
