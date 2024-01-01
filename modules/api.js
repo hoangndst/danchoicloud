@@ -49,17 +49,18 @@ export const getCompetitionMatches = async (competitionId, dateFrom, dateTo) => 
   try {
     const response = await axios.request(options);
     const data = response.data;
-    let from = moment(new Date(dateFrom)).format('DD/MM/YYYY hh:mm').slice(0, 10);
+    let from = new Date(dateFrom);
     let to = new Date(dateTo)
     to.setDate(to.getDate() - 1);
-    to = moment(to).format('DD/MM/YYYY hh:mm').slice(0, 10);
     for (let i = 0; i < data.matches.length; i++) {
       // "DD/MM/YYYY\nhh:mm AM"
-      let utcDate = moment(new Date(data.matches[i].utcDate)).format('DD/MM/YYYY hh:mm');
-      data.matches[i].utcDate = utcDate.slice(0, 10) + '\n' + utcDate.slice(utcDate.length - 5, utcDate.length);
-      if (data.matches[i].utcDate.slice(0, 10) !== from && data.matches[i].utcDate.slice(0, 10) !== to) {
+      let utc = new Date(data.matches[i].utcDate);
+      if (utc > to) {
         data.matches.splice(i, 1);
         i--;
+      } else {
+        let utcDate = moment(new Date(data.matches[i].utcDate)).format('DD/MM/YYYY hh:mm');
+        data.matches[i].utcDate = utcDate.slice(0, 10) + '\n' + utcDate.slice(utcDate.length - 5, utcDate.length);
       }
     }
     return data;

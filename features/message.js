@@ -11,7 +11,7 @@ export const eplStandings = async () => {
 }
 
 export const eplMatches = async () => {
-  onCommand(/\/x$|eplmatches@danchoicloud_bot$/, sendMessage, getEPLMatches, { parse_mode: "HTML" }, (msg) => {
+  onCommand(/\/eplmatches$|eplmatches@danchoicloud_bot$/, sendMessage, getEPLMatches, { parse_mode: "HTML" }, (msg) => {
     console.log("Command received: ", msg.text);
   }).catch((error) => {
     console.log(error);
