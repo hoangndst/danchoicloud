@@ -99,9 +99,19 @@ export const sendMessageWithSchedule = async (options, asyncFunction, asyncGetMe
     const j = schedule.scheduleJob(
       `${options.minute} ${options.hour} * * *`,
       async () => {
-        asyncGetMessageFunction && (options.text = await asyncGetMessageFunction());
-        await asyncFunction(options);
-        console.log("Message sent successfully");
+        asyncGetMessageFunction().then((additionalOption) => {
+          let opt = {
+            ...options,
+            ...additionalOption,
+          };
+          asyncFunction(opt).then(() => {
+            console.log("Message sent successfully");
+          }).catch((error) => {
+            console.log(error);
+          })
+        }).catch((error) => {
+          console.log(error);
+        })
       }
     );
   } catch (error) {
