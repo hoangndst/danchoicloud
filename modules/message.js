@@ -183,19 +183,32 @@ export const getEPLStandings = async () => {
 
 export const getEPLMatches = async () => {
   let dateFrom = new Date();
+  dateFrom.setDate(dateFrom.getDate() - 1);
   let dateTo = new Date();
   dateTo.setDate(dateTo.getDate() + 2);
   dateFrom = dateFrom.toISOString().slice(0, 10);
   dateTo = dateTo.toISOString().slice(0, 10);
   const data = await getCompetitionMatches("PL", dateFrom, dateTo);
+  if (data.matches.length === 0) {
+    return { text: "No matches today" };
+  }
   let config, messageTable, output;
   messageTable = [];
-  messageTable.push(["Match", "Time"]);
+  messageTable.push(["M", "Score", "Time"]);
   for (let i = 0; i < data.matches.length; i++) {
     let match =
-      data.matches[i].homeTeam.name + "\n" + data.matches[i].awayTeam.name;
+      data.matches[i].homeTeam.tla + "\n" + data.matches[i].awayTeam.tla;
+    let score = "";
+    if (data.matches[i].status === "FINISHED") {
+      score =
+        data.matches[i].score.fullTime.home +
+        "\n" +
+        data.matches[i].score.fullTime.away;
+    } else {
+      score = data.matches[i].status;
+    }
     let time = data.matches[i].utcDate;
-    messageTable.push([match, time]);
+    messageTable.push([match, score, time]);
   }
 
   config = {
@@ -205,10 +218,14 @@ export const getEPLMatches = async () => {
     },
     columns: {
       0: {
-        alignment: "left",
-        width: 20,
+        alignment: "center",
+        width: 4,
       },
       1: {
+        alignment: "center",
+        width: 5,
+      },
+      2: {
         alignment: "left",
         width: 10,
       },
