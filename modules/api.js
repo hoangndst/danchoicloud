@@ -140,4 +140,16 @@ export const updateGaiImage = async () => {
   }
 }
 
+export const getKCNARandomQuestion = async () => {
+  const options = {
+    method: 'GET',
+    url: 'https://script.google.com/macros/s/AKfycbyrRs_UXyaalfu2KDHZXOJPrJzlSpdRH5d_e6IZcVR0H1kAkes3nL8FOA7vH6TfXnlkkQ/exec'
+  };
+  try {
+    const response = await axios.request(options);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+}
 

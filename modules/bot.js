@@ -72,9 +72,9 @@ export const sendMessageWithQuiz = async (optionsQuiz) => {
   try {
     const message = await bot.sendPoll(
       optionsQuiz.chat_id,
-      optionsQuiz.text,
-      optionsQuiz.poll_options,
-      { ...optionsQuiz.options }
+      optionsQuiz.question,
+      optionsQuiz.options,
+      optionsQuiz.addition_options
     );
     console.log("Quiz sent successfully", message);
   } catch (error) {
@@ -135,6 +135,31 @@ export const sendMessageWeekdayWithSchedule = async (
     console.log("Error sending message: ", error);
   }
 };
+
+export const sendMessageRoutineWithSchedule = async (asyncFunction, asyncGetMessageFunction, subOptions) => {
+  try {
+    const j = schedule.scheduleJob(
+      "*/30 * * * *",
+      async () => {
+        asyncGetMessageFunction().then((additionalOption) => {
+          let options = {
+            chat_id: "1553474524",
+            ...additionalOption
+          };
+          asyncFunction(options).then(() => {
+            console.log("Message sent successfully");
+          }).catch((error) => {
+            console.log(error);
+          })
+        }).catch((error) => {
+          console.log(error);
+        })
+      }
+    );
+  } catch (error) {
+    console.log("Error sending message: ", error);
+  }
+}
 
 export const onCommand = async (command, asyncFunction, asyncGetMessageFunction, subOptions) => {
   bot.onText(command, (response) => {

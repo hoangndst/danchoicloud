@@ -1,7 +1,7 @@
 import { a1y } from "../modules/channel.js";
-import { sendMessage, sendMessageWithSchedule, sendMessageWeekdayWithSchedule } from "../modules/bot.js";
+import { sendMessage, sendMessageWithQuiz, sendMessageWithSchedule, sendMessageWeekdayWithSchedule, sendMessageRoutineWithSchedule } from "../modules/bot.js";
 import { ALARM, LUNCH, HIGH_1, HIGH_2, LEAVE, getWeatherForecastMessage } from "../modules/message.js";
-
+import { getKCNARandomQuestion } from "../modules/api.js";
 // general
 const optionsAlarms = {
   hour: 7,
@@ -86,4 +86,12 @@ export const scheduleWeekday = async () => {
   }).catch((error) => {
     console.log("Error scheduling high 2: ", error);
   });
+}
+
+export const scheduleRoutine = async () => {
+  await sendMessageRoutineWithSchedule(sendMessageWithQuiz, getKCNARandomQuestion).then(() => {
+    console.log("KCNARandomQuestion scheduled");
+  }).catch((error) => {
+    console.log("Error scheduling KCNARandomQuestion: ", error);
+  })
 }
