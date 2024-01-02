@@ -1,6 +1,6 @@
-import { sendMessage, onCommand, sendMessageWithMedia } from "../modules/bot.js";
+import { sendMessage, onCommand, sendMessageWithMedia, sendMessageWithQuiz } from "../modules/bot.js";
 import { getEPLStandings, getCommands, getEPLMatches, getWeatherForecastMessage } from "../modules/message.js";
-import { getCatImage, getDogImage, getGaiImage, updateGaiImage } from "../modules/api.js";
+import { getCatImage, getDogImage, getGaiImage, updateGaiImage, getKCNARandomQuestion } from "../modules/api.js";
 
 export const eplStandings = async () => {
   onCommand(/\/epl$|epl@danchoicloud_bot$/, sendMessage, getEPLStandings, { parse_mode: "HTML" }, (msg) => {
@@ -66,6 +66,14 @@ export const updateGai = async () => {
   })
 }
 
+export const kcna = async () => {
+  onCommand(/\/kcna$|kcna@danchoicloud_bot/, sendMessageWithQuiz, getKCNARandomQuestion, (msg) => {
+    console.log("Command received: ", msg.text);
+  }).catch((error) => {
+    console.log(error);
+  })
+}
+
 export const features = async () => {
   await eplStandings().then(() => {
     console.log("EPL Standings feature enabled");
@@ -111,6 +119,12 @@ export const features = async () => {
 
   await updateGai().then(() => {
     console.log("Update Gai feature enabled");
+  }).catch((error) => {
+    console.log(error);
+  })
+
+  await kcna().then(() => {
+    console.log("KCNA feature enabled");
   }).catch((error) => {
     console.log(error);
   })
