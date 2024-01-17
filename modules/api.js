@@ -153,3 +153,31 @@ export const getKCNARandomQuestion = async () => {
   }
 }
 
+export const getSieuNhanImage = async () => {
+  const options = {
+    method: 'GET',
+    url: 'https://script.google.com/macros/s/AKfycbz9Ew7sKBA2ATBe-a60-zYTWDtz1FRZlTQFkruHUVhvUB3ExIQdIQo9RGhMa5oKPaGQSw/exec'
+  };
+  try {
+    const response = await axios.request(options);
+    return { photo: response.data.image };
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export const updateSieuNhanImage = async () => {
+  const options = {
+    method: 'GET',
+    url: 'https://script.google.com/macros/s/AKfycbz9Ew7sKBA2ATBe-a60-zYTWDtz1FRZlTQFkruHUVhvUB3ExIQdIQo9RGhMa5oKPaGQSw/exec?action=loadImage'
+  };
+  try {
+    const response = await axios.request(options);
+    if (response.data.updated) {
+      return { text: 'Cập nhật tài liệu học tập thành công 🥰' };
+    } 
+    return { text: 'Cập nhật tài liệu không thành công 🥲, liên hệ @hoangndst hoặc mở issues tại: https://github.com/hoangndst/danchoicloud/issues' };
+  } catch (error) {
+    console.error(error);
+  }
+}

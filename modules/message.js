@@ -46,6 +46,10 @@ export const COMMANDS = [
     description: "Help",
   },
   {
+    command: "/sieunhan",
+    description: "Image of sieu nhan",
+  },
+  {
     command: "/epl",
     description: "EPL Standings",
   },
@@ -107,9 +111,9 @@ export const getCommands = async () => {
   }
   // tutorial to update useful image for learning
   message += "\n<b>Update useful image for learning:</b>\n";
-  message += "1. <tg-spoiler>Go to <a href='https://drive.google.com/drive/folders/1ThawSLpp6VdQu7IuQX29Q4yFTHhU0yrn?usp=sharing'>Drive</a></tg-spoiler>\n";
+  message += "1. <tg-spoiler>Go to <a href='https://drive.google.com/drive/folders/1sjUoe79OgoJWP8NKPA9Zzsn-L-uV8ooH?usp=sharing'>Drive</a></tg-spoiler>\n";
   message += "2. Upload image to this folder 🗂\n";
-  message += "3. Use command '/updatehoctap' to update image, wait for a few seconds... 😎\n";
+  message += "3. Use command '/updatesieunhan' to update image, wait for a few seconds... 😎\n";
   message += "4. Enjoy! 🥂\n";
   
   message += "\n<b>Please don't delete image on Drive 🥲, thank you!</b>\n";
