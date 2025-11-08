@@ -1,0 +1,73 @@
+name: Pull Request CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  pr-ci:
+    runs-on: ubuntu-latest
+
+    env:
+      CI: true
+      UV_CACHE_DIR: /tmp/.uv-cache
+
+    steps:
+      - uses: actions/checkout@v4 # v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install the project
+        run: uv sync --all-extras --dev
+
+      - name: Cache uv
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.uv-cache
+          key: uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+          restore-keys: |
+            uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+            uv-${{ runner.os }}
+
+      - name: Minimize uv cache
+        run: uv cache prune --ci
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Pre build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          platforms: linux/amd64
+          tags: hoangndst/test:latest
+          cache-from: type=local,src=${{ runner.temp }}/.buildx-cache
+          cache-to: type=local,dest=${{ runner.temp }}/.buildx-cache-new,mode=max
+
+      - # Temp fix
+        # https://github.com/docker/build-push-action/issues/252
+        # https://github.com/moby/buildkit/issues/1896
+        name: Move cache
+        run: |
+          rm -rf ${{ runner.temp }}/.buildx-cache
+          mv ${{ runner.temp }}/.buildx-cache-new ${{ runner.temp }}/.buildx-cache
