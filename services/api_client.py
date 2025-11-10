@@ -15,31 +15,6 @@ class APIClient:
         """Close the HTTP client."""
         await self.client.aclose()
 
-    async def get_weather_forecast(self, location: str) -> Optional[Dict[str, Any]]:
-        """
-        Get weather forecast for a location.
-
-        Args:
-            location: Location name (e.g., "Hanoi")
-
-        Returns:
-            Weather data dictionary or None if error
-        """
-        try:
-            response = await self.client.get(
-                "https://weatherapi-com.p.rapidapi.com/current.json",
-                params={"q": location, "lang": "vi"},
-                headers={
-                    "X-RapidAPI-Key": settings.weather_api_key,
-                    "X-RapidAPI-Host": settings.weather_api_host,
-                },
-            )
-            response.raise_for_status()
-            return response.json()
-        except Exception as e:
-            print(f"Error getting weather forecast: {e}")
-            return None
-
     async def get_competition_standings(self, competition_id: str) -> Optional[Dict[str, Any]]:
         """
         Get competition standings.

@@ -4,7 +4,6 @@ from telegram.ext import ContextTypes
 from services.typing_indicator import with_typing
 from services.api_client import api_client
 from utils.formatters import (
-    format_weather_message,
     format_commands_message,
 )
 from bot.handlers import send_message, send_photo, send_video, send_poll
@@ -20,20 +19,6 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     except Exception as e:
         print(f"Error in help_command: {e}")
         await send_message(update, context, "Đã có lỗi xảy ra khi hiển thị danh sách lệnh.")
-
-
-@with_typing
-async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    try:
-        data = await api_client.get_weather_forecast("Hanoi")
-        if data:
-            text = format_weather_message(data)
-            await send_message(update, context, text)
-        else:
-            await send_message(update, context, "Không thể lấy dữ liệu thời tiết.")
-    except Exception as e:
-        print(f"Error in weather: {e}")
-        await send_message(update, context, "Đã có lỗi xảy ra khi lấy dữ liệu thời tiết.")
 
 
 @with_typing

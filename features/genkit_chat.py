@@ -1,5 +1,8 @@
+import traceback
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
+import telegramify_markdown
 
 from services.genkit_service import genkit_service
 from services.conversation_manager import conversation_manager
@@ -8,8 +11,66 @@ from services.conversation_manager import conversation_manager
 # Callback data for exit button
 CALLBACK_GENKIT_EXIT = "genkit_exit"
 
-# Telegram message length limit (safe limit to avoid issues)
+# Telegram message length limit
 MAX_MESSAGE_LENGTH = 4000
+
+
+async def send_message_with_markdown(
+    message_obj,
+    text: str,
+    reply_to_message_id: int = None,
+    reply_markup: InlineKeyboardMarkup = None
+):
+    """
+    Send a message with markdown formatting, with automatic fallback to plain text.
+    
+    Args:
+        message_obj: Message object to reply to (update.message or last_message)
+        text: Message text to send
+        reply_to_message_id: Message ID to reply to (only for first message)
+        reply_markup: Inline keyboard markup
+        
+    Returns:
+        Sent message object
+    """
+    # Try to convert to markdown first
+    try:
+        content = telegramify_markdown.markdownify(text)
+    except Exception as e:
+        print(f"Markdown conversion failed, using plain text: {e}")
+        content = text
+    
+    # Try sending with markdown
+    try:
+        if reply_to_message_id:
+            return await message_obj.reply_text(
+                content,
+                reply_to_message_id=reply_to_message_id,
+                reply_markup=reply_markup,
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+        else:
+            return await message_obj.reply_text(
+                content,
+                reply_markup=reply_markup,
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+    except Exception as e:
+        # Fallback to plain text if markdown parsing fails
+        print(f"Markdown parsing failed, using plain text: {e}")
+        if reply_to_message_id:
+            return await message_obj.reply_text(
+                text,
+                reply_to_message_id=reply_to_message_id,
+                reply_markup=reply_markup,
+                parse_mode=None
+            )
+        else:
+            return await message_obj.reply_text(
+                text,
+                reply_markup=reply_markup,
+                parse_mode=None
+            )
 
 
 async def handle_genkit_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -24,11 +85,12 @@ async def handle_genkit_message(update: Update, context: ContextTypes.DEFAULT_TY
     if not update.message or not update.message.text:
         return
 
-    user_id = update.message.from_user.id
-    user_name = update.message.from_user.username
+    # Get user_id for bot operations (if needed) and username for database/AI
+    user_id = update.message.from_user.id  # Used only for fallback if username is None
+    user_name = update.message.from_user.username or f"user_{user_id}"  # Username for database and AI API
 
-    # Check if user has active conversation
-    if not conversation_manager.is_active(user_id):
+    # Check if user has active conversation (using username)
+    if not await conversation_manager.is_active(user_name):
         return
 
     # Only process messages that are replies
@@ -40,9 +102,9 @@ async def handle_genkit_message(update: Update, context: ContextTypes.DEFAULT_TY
     if not user_message:
         return
 
-    history = conversation_manager.get_history(user_id)
+    history = await conversation_manager.get_history(user_name)
 
-    conversation_manager.add_message(user_id, "user", user_message)
+    await conversation_manager.add_message(user_name, "user", user_message)
 
     reply_to_message = update.message.reply_to_message
     if reply_to_message:
@@ -63,7 +125,7 @@ async def handle_genkit_message(update: Update, context: ContextTypes.DEFAULT_TY
 async def process_genkit_chat(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
-    user_id: int,
+    username: str,
     user_message: str,
     history: list
 ) -> None:
@@ -73,7 +135,7 @@ async def process_genkit_chat(
     Args:
         update: Telegram update
         context: Bot context
-        user_id: Telegram user ID
+        username: Telegram username
         user_message: User's message
         history: Conversation history
     """
@@ -87,53 +149,109 @@ async def process_genkit_chat(
             action="typing",
             message_thread_id=message_thread_id
         )
-
-        # Call Genkit API (userId as string)
-        # History is already without current message (we got it before adding user message)
+        
+        # Call Genkit API with username (username is used for both database and AI API)
         ai_response = await genkit_service.chat(
             message=user_message,
-            userId=str(user_id),
+            userId=username,
             history=history if history else None
         )
 
         if not ai_response:
-            # When replying, don't pass message_thread_id - Telegram auto-detects from reply
+            # Log error for debugging
+            print(f"ERROR: Genkit API returned no response for user {username}")
+            print(f"User message: {user_message}")
+            
+            # Error message to send to user
+            error_message = "⚠️ Sorry bro, I'm having issues right now. Please try again!"
+            
+            # Save error message to history for tracking
+            try:
+                await conversation_manager.add_message(username, "model", error_message)
+            except Exception as db_error:
+                print(f"ERROR saving error message to database: {db_error}")
+            
+            # Notify user about the error
             await update.message.reply_text(
-                "Sorry, an error occurred while calling AI. Please try again.",
+                error_message,
                 reply_to_message_id=update.message.message_id
             )
             return
 
-        # Add AI response to history
-        conversation_manager.add_message(user_id, "ai", ai_response)
-
-        # Split response into chunks if too long
-        message_chunks = split_message(ai_response)
+        try:
+            await conversation_manager.add_message(username, "model", ai_response)
+            print(f"Successfully added AI response to database for user {username}")
+        except Exception as db_error:
+            print(f"ERROR adding message to database: {db_error}")
+            print(f"Error type: {type(db_error).__name__}")
+            print(f"Traceback: {traceback.format_exc()}")
+            raise
         
-        # Create exit button (only for last message)
+        # Debug: Print history after adding AI response
+        try:
+            updated_history = await conversation_manager.get_history(username)
+            print(f"History after adding AI response: {len(updated_history)} messages")
+        except Exception as history_error:
+            print(f"ERROR getting history: {history_error}")
+            print(f"Error type: {type(history_error).__name__}")
+            print(f"Traceback: {traceback.format_exc()}")
+            raise
+        
+        # Create exit button
         keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton("❌ End conversation", callback_data=CALLBACK_GENKIT_EXIT)]
         ])
 
-        # Send all message chunks
+        # Split message if it exceeds Telegram's limit
+        message_chunks = split_message(ai_response)
+        
+        # Send all message chunks with markdown support
         last_message = None
         for i, chunk in enumerate(message_chunks):
             is_last = (i == len(message_chunks) - 1)
+            current_keyboard = keyboard if is_last else None
             
-            if i == 0:
-                last_message = await update.message.reply_text(
-                    chunk,
-                    reply_to_message_id=update.message.message_id,
-                    reply_markup=keyboard if is_last else None
-                )
-            else:
-                last_message = await last_message.reply_text(
-                    chunk,
-                    reply_markup=keyboard if is_last else None
-                )
+            try:
+                if i == 0:
+                    # First chunk replies to user's message
+                    last_message = await send_message_with_markdown(
+                        update.message,
+                        chunk,
+                        reply_to_message_id=update.message.message_id,
+                        reply_markup=current_keyboard
+                    )
+                else:
+                    # Subsequent chunks reply to previous chunk
+                    last_message = await send_message_with_markdown(
+                        last_message,
+                        chunk,
+                        reply_markup=current_keyboard
+                    )
+            except Exception as send_error:
+                # Final fallback if all else fails
+                print(f"Error sending message chunk {i}: {send_error}")
+                if i == 0:
+                    last_message = await update.message.reply_text(
+                        chunk,
+                        reply_to_message_id=update.message.message_id,
+                        reply_markup=current_keyboard,
+                        parse_mode=None
+                    )
+                else:
+                    last_message = await last_message.reply_text(
+                        chunk,
+                        reply_markup=current_keyboard,
+                        parse_mode=None
+                    )
 
     except Exception as e:
-        print(f"Error in process_genkit_chat: {e}")
+        print(f"ERROR in process_genkit_chat: {e}")
+        print(f"Error type: {type(e).__name__}")
+        print(f"Full traceback:")
+        traceback.print_exc()
+        print(f"Username: {username}")
+        print(f"User message: {user_message}")
+        print(f"AI response: {ai_response if 'ai_response' in locals() else 'Not generated'}")
         await update.message.reply_text(
             "Sorry, an error occurred. Please try again.",
             reply_to_message_id=update.message.message_id
@@ -160,6 +278,7 @@ def split_message(text: str) -> list[str]:
         chunk = text[current_pos:current_pos + MAX_MESSAGE_LENGTH]
         
         if current_pos + MAX_MESSAGE_LENGTH < len(text):
+            # Try to split at newline first
             last_newline = chunk.rfind('\n')
             if last_newline > MAX_MESSAGE_LENGTH * 0.8:  # Only split at newline if it's not too early
                 chunk = chunk[:last_newline + 1]
@@ -171,8 +290,10 @@ def split_message(text: str) -> list[str]:
                     chunk = chunk[:last_space]
                     current_pos += last_space + 1
                 else:
+                    # Force split at max length if no good break point
                     current_pos += MAX_MESSAGE_LENGTH
         else:
+            # Last chunk
             current_pos = len(text)
         
         chunks.append(chunk)
@@ -192,16 +313,18 @@ async def handle_genkit_exit(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if not query:
         return
 
-    user_id = query.from_user.id
+    # Get user_id for bot operations (if needed) and username for database/AI
+    user_id = query.from_user.id  # Used only for fallback if username is None
+    username = query.from_user.username or f"user_{user_id}"  # Username for database and AI API
 
-    # Check if user has active conversation
-    if not conversation_manager.is_active(user_id):
+    # Check if user has active conversation (using username)
+    if not await conversation_manager.is_active(username):
         await query.answer("Yo bro, no active conversation!", show_alert=True)
         return
 
     try:
         # End conversation
-        conversation_manager.end_conversation(user_id)
+        await conversation_manager.end_conversation(username)
 
         # Answer callback
         await query.answer("Alright bro!")
