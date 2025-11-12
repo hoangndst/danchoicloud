@@ -15,7 +15,8 @@ class GenkitService:
     async def chat(
         self,
         message: str,
-        userId: str,
+        username: str,
+        platform: str,
         history: Optional[List[Dict[str, str]]] = None
     ) -> Optional[str]:
         """
@@ -23,31 +24,29 @@ class GenkitService:
 
         Args:
             message: User's message
-            userId: Telegram user ID as string
-            history: Optional conversation history in format [{"role": "user"/"ai", "message": "..."}]
+            username: Telegram username (used as user identifier for AI API)
+            platform: Platform of the user (telegram, facebook, instagram, etc.)
+            history: Optional conversation history in format [{"role": "user"/"model", "message": "..."}]
 
         Returns:
             AI response text or None if error
         """
         try:
-            # Convert history format from {"role": "user"/"ai", "message": "..."}
+            # Convert history format from {"role": "user"/"model", "message": "..."}
             # to format expected by Genkit API (messageSchema format)
             genkit_history = None
             if history:
                 genkit_history = []
                 for msg in history:
-                    # Convert role "ai" to "assistant" if needed, or keep as is
-                    role = msg.get("role", "user")
-                    if role == "ai":
-                        role = "assistant"
                     genkit_history.append({
-                        "role": role,
+                        "role": msg.get("role", "user"),
                         "content": msg.get("message", "")
                     })
 
             payload = {
                 "message": message,
-                "userId": userId,
+                "username": username,
+                "platform": platform,
             }
             if genkit_history:
                 payload["history"] = genkit_history

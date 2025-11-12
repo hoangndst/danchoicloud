@@ -10,6 +10,7 @@ from bot.bot import Bot
 from features.register import register_features
 from services.api_client import api_client
 from services.genkit_service import genkit_service
+from services.conversation_manager import conversation_manager
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -39,6 +40,7 @@ async def main():
         # Cleanup
         await api_client.close()
         await genkit_service.close()
+        await conversation_manager.close()
         await bot_instance.stop()
         logger.info("Bot stopped successfully")
 

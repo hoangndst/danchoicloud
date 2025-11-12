@@ -16,3 +16,6 @@ wheels/
 .env
 .env.*
 docker-compose.yml
+
+# Data directory (database files)
+data/

@@ -8,14 +8,12 @@ from services.conversation_manager import conversation_manager
 from . import commands
 
 
-CALLBACK_WEATHER = "weather"
 CALLBACK_IMAGES = "images"
 CALLBACK_IMAGES_CAT = "images_cat"
 CALLBACK_IMAGES_DOG = "images_dog"
 CALLBACK_IMAGES_SIEUNHAN = "images_sieunhan"
 CALLBACK_IMAGES_HOCTAP = "images_hoctap"
 CALLBACK_UTILS_HELP = "utils_help"
-CALLBACK_GENKIT_CHAT = "genkit_chat"
 CALLBACK_BACK = "back"
 CALLBACK_EXIT = "exit"
 
@@ -122,7 +120,8 @@ async def send_menu_after_response(
         user_id = get_user_id_from_update(update)
         welcome_text = (
             "👋 Yo bro! What's up!\n\n"
-            "What you need? Choose a feature from the menu below bro:"
+            "What you need? Choose a feature from the menu below bro:\n\n"
+            "💬 <b>Reply this message to chat with me bro!</b>"
         )
         
         if menu_type == "main":
@@ -146,6 +145,7 @@ async def send_menu_after_response(
             text=welcome_text,
             reply_markup=keyboard,
             message_thread_id=message_thread_id,
+            parse_mode="HTML",
         )
     except Exception as e:
         print(f"Error sending menu after response: {e}")
@@ -163,11 +163,7 @@ def create_main_menu(user_id: int) -> InlineKeyboardMarkup:
     """
     keyboard = [
         [
-            InlineKeyboardButton("🌤️ Weather", callback_data=encode_callback(CALLBACK_WEATHER, user_id)),
             InlineKeyboardButton("🖼️ Images", callback_data=encode_callback(CALLBACK_IMAGES, user_id)),
-        ],
-        [
-            InlineKeyboardButton("🤖 AI Bro", callback_data=encode_callback(CALLBACK_GENKIT_CHAT, user_id)),
         ],
         [
             InlineKeyboardButton("ℹ️ Help", callback_data=encode_callback(CALLBACK_UTILS_HELP, user_id)),
@@ -208,27 +204,40 @@ def create_images_menu(user_id: int) -> InlineKeyboardMarkup:
 @with_typing
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    Handle /start command - show main menu.
+    Handle /start command - show main menu and start AI conversation.
 
     Args:
         update: Telegram update
         context: Bot context
     """
+    user_id = get_user_id_from_update(update)
+    username = None
+    if update.message:
+        username = update.message.from_user.username
+    elif update.callback_query:
+        username = update.callback_query.from_user.username
+    
+    # Fallback to user_id if username is None
+    username = username or f"user_{user_id}"
+    
+    # Automatically start conversation for AI chat
+    await conversation_manager.start_conversation(username)
+    
     welcome_text = (
         "👋 Yo bro! What's up!\n\n"
         "What you need today? Choose a feature from the menu below bro:\n\n"
-        "🌤️ Weather - Hanoi weather forecast\n"
         "🖼️ Images - View cat, dog, siêu nhân, học tập images\n"
-        "ℹ️ Help - View usage guide"
+        "ℹ️ Help - View usage guide\n\n"
+        "💬 <b>Reply this message to chat with me bro!</b>"
     )
     
-    user_id = get_user_id_from_update(update)
     keyboard = create_main_menu(user_id)
     
     try:
         await update.message.reply_text(
             welcome_text,
             reply_markup=keyboard,
+            parse_mode="HTML",
         )
     except Exception as e:
         print(f"Error in start_command: {e}")
@@ -256,12 +265,14 @@ async def show_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.callback_query.edit_message_text(
                 welcome_text,
                 reply_markup=keyboard,
+                parse_mode="HTML",
             )
             await update.callback_query.answer()
         else:
             await update.message.reply_text(
                 welcome_text,
                 reply_markup=keyboard,
+                parse_mode="HTML",
             )
     except Exception as e:
         print(f"Error in show_menu: {e}")
@@ -294,7 +305,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         
         # Show typing indicator for actions that will execute commands
         actions_that_need_typing = [
-            CALLBACK_WEATHER, CALLBACK_IMAGES_CAT, CALLBACK_IMAGES_DOG,
+            CALLBACK_IMAGES_CAT, CALLBACK_IMAGES_DOG,
             CALLBACK_IMAGES_SIEUNHAN, CALLBACK_IMAGES_HOCTAP,
             CALLBACK_UTILS_HELP
         ]
@@ -313,13 +324,8 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         # Get current user_id for new menus
         user_id = current_user_id
         
-        # Weather
-        if action == CALLBACK_WEATHER:
-            await commands.weather(update, context)
-            await send_menu_after_response(update, context, "main")
-        
         # Images menu
-        elif action == CALLBACK_IMAGES:
+        if action == CALLBACK_IMAGES:
             # Show images submenu
             keyboard = create_images_menu(user_id)
             await query.edit_message_text(
@@ -343,24 +349,6 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         elif action == CALLBACK_UTILS_HELP:
             await commands.help_command(update, context)
             await send_menu_after_response(update, context, "main")
-        
-        # Genkit Chat
-        elif action == CALLBACK_GENKIT_CHAT:
-            # Delete menu message
-            await delete_menu_message(update, context)
-            # Start conversation
-            conversation_manager.start_conversation(user_id)
-            # Send welcome message
-            welcome_text = "🤖 Starting chat with AI. You can reply to this message to chat."
-            # Get message_thread_id from callback query message for forum topics
-            message_thread_id = None
-            if query.message:
-                message_thread_id = query.message.message_thread_id
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=welcome_text,
-                message_thread_id=message_thread_id,
-            )
         
         # Back to main menu
         elif action == CALLBACK_BACK:

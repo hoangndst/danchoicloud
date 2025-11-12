@@ -5,8 +5,6 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     telegram_token: str
-    weather_api_key: str
-    weather_api_host: str
     football_api_token: str
     football_api_base_url: str
     genkit_api_url: str
