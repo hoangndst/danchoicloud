@@ -15,7 +15,8 @@ class GenkitService:
     async def chat(
         self,
         message: str,
-        userId: str,
+        username: str,
+        platform: str,
         history: Optional[List[Dict[str, str]]] = None
     ) -> Optional[str]:
         """
@@ -23,7 +24,8 @@ class GenkitService:
 
         Args:
             message: User's message
-            userId: Telegram username (used as user identifier for AI API)
+            username: Telegram username (used as user identifier for AI API)
+            platform: Platform of the user (telegram, facebook, instagram, etc.)
             history: Optional conversation history in format [{"role": "user"/"model", "message": "..."}]
 
         Returns:
@@ -43,7 +45,8 @@ class GenkitService:
 
             payload = {
                 "message": message,
-                "userId": userId,
+                "username": username,
+                "platform": platform,
             }
             if genkit_history:
                 payload["history"] = genkit_history

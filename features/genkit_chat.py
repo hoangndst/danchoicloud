@@ -153,7 +153,8 @@ async def process_genkit_chat(
         # Call Genkit API with username (username is used for both database and AI API)
         ai_response = await genkit_service.chat(
             message=user_message,
-            userId=username,
+            username=username,
+            platform="telegram",
             history=history if history else None
         )
 
