@@ -31,7 +31,7 @@ jobs:
         run: uv sync --all-extras --dev
 
       - name: Cache uv
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: /tmp/.uv-cache
           key: uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
@@ -46,7 +46,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Cache Docker layers
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ runner.temp }}/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
